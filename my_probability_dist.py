@@ -38,12 +38,14 @@ def roll(a, b, n, r=.85):
 if __name__ == "__main__":
     n = 20
     p = 7
+    r0 = .85
 
-    one_sample = roll(1, n, 10**p, r=.85)
-    plt.hist(one_sample, density=False, bins = np.arange(1, n+2) - 0.5, rwidth=0.8)
+    one_sample = roll(1, n, 10**p, r=r0)
+    plt.hist(one_sample, density=False, bins = np.arange(1, n+2) - 0.5, label=f'1d{n}, r={r0}', rwidth=0.8)
     plt.xticks(np.arange(1, n+1))
     print(one_sample[0:20])
     print('Max', np.max(one_sample))
     print('Min', np.min(one_sample))
     print('Avg', np.average(one_sample))
+    plt.legend()
     plt.show()
