@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 
 
 def roll(a, b, n, r=.85):
-    if r != 1.0:
+    if 0 < r < 1:
         if (b+1 - a) % 2 == 0:
             k = int((b+1-a)/2)
             even_dist_prob = [0.5 * (r ** i) * ((1.-r) / (1 - r ** k)) for i in range(k-1, -1, -1)] + \
@@ -31,14 +31,30 @@ def roll(a, b, n, r=.85):
             print(odd_dist_prob[0:k+1])
             sample = np.random.choice(np.arange(a, b + 1), size=n, p=odd_dist_prob)
             return sample
-    else:
+    elif r == 1:
         sample = np.random.choice(np.arange(a, b+1), size=n)
         return sample
+    else:
+        if (b + 1 - a) % 2 == 0:
+            k = int((b+1-a)/2)
+            even_dist_prob = [0.5 * (r ** i) * ((1.-r) / (1 - r ** k)) for i in range(k-1, -1, -1)] + \
+                             [0.5 * (r ** i) * ((1.-r) / (1 - r ** k)) for i in range(0, k)]
+            print(even_dist_prob[0:k])
+            sample = np.random.choice(np.arange(a, b+1), size=n, p=even_dist_prob)
+            return sample
+        elif (b + 1 - a) % 2 == 1:
+            k = int((b - a) / 2)
+            odd_dist_prob = [0. for i in range(-k, k+1)]
+            odd_dist_prob[int((b+a)/2)-1] = 1.
+            print(odd_dist_prob)
+            sample = np.random.choice(np.arange(a, b + 1), size=n, p=odd_dist_prob)
+            return sample
+
 
 if __name__ == "__main__":
-    n = 20
+    n = 21
     p = 7
-    r0 = .85
+    r0 = 0
 
     one_sample = roll(1, n, 10**p, r=r0)
     plt.hist(one_sample, density=False, bins = np.arange(1, n+2) - 0.5, label=f'1d{n}, r={r0}', rwidth=0.8)
