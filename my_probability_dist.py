@@ -1,67 +1,44 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-'''The function 'roll' uses a custom probability distribution to roll a die of a given range. If the die
-    is even sided, the distribution is defined by splitting the number of sides in 2, and for i in 
-    range(n/2, 0, -1), the probability of that side being chosen is P = C * r**i, where C is a constant
-    chosen so that (in the end) the probabilities sum to 1. For i in range(n/2+1, n+1), the probabilities
-    are mirrored so that n/2+1 has the same chance as n/2, n/2+2 has the same chance as n/2-1, ... , and
-    n has the same chance as 1. If the die is odd sided, there are two sides of equal length with the 
-    median in between. The two sides are handled similarly as to the even case, and a probability is
-    assigned to the median that satisfies 'As r goes to 0, the distribution approaches a constant
-    distribution.' and 'As r goes to 1, the distribution approaches the uniform distribution.'''
 
-
-def roll(a, b, n, r=.85):
-    if 0 < r < 1:
-        if (b+1 - a) % 2 == 0:
-            k = int((b+1-a)/2)
-            even_dist_prob = [0.5 * (r ** i) * ((1.-r) / (1 - r ** k)) for i in range(k-1, -1, -1)] + \
-                             [0.5 * (r ** i) * ((1.-r) / (1 - r ** k)) for i in range(0, k)]
-            print(even_dist_prob[0:k])
-            sample = np.random.choice(np.arange(a, b+1), size=n, p=even_dist_prob)
-            return sample
-        elif (b+1 - a) % 2 == 1:
-            k = int((b-a)/2)
-            odd_dist_prob = [0.5 * ((2*k*r) / (2*k+1)) * (r ** i) * ((1.-r) / (1 - r ** k))
-                             for i in range(k-1, -1, -1)] + \
-                            [1 - (2*k*r) / (2*k+1)] + \
-                            [0.5 * ((2*k*r) / (2*k+1)) * (r ** i) * ((1.-r) / (1 - r ** k))
-                             for i in range(0, k)]
-            print(odd_dist_prob[0:k+1])
-            sample = np.random.choice(np.arange(a, b + 1), size=n, p=odd_dist_prob)
-            return sample
-    elif r == 1:
-        sample = np.random.choice(np.arange(a, b+1), size=n)
-        return sample
-    else:
-        if (b + 1 - a) % 2 == 0:
-            k = int((b+1-a)/2)
-            even_dist_prob = [0.5 * (r ** i) * ((1.-r) / (1 - r ** k)) for i in range(k-1, -1, -1)] + \
-                             [0.5 * (r ** i) * ((1.-r) / (1 - r ** k)) for i in range(0, k)]
-            print(even_dist_prob[0:k])
-            sample = np.random.choice(np.arange(a, b+1), size=n, p=even_dist_prob)
-            return sample
-        elif (b + 1 - a) % 2 == 1:
-            k = int((b - a) / 2)
-            odd_dist_prob = [0. for i in range(-k, k+1)]
-            odd_dist_prob[int((b+a)/2)-1] = 1.
-            print(odd_dist_prob)
-            sample = np.random.choice(np.arange(a, b + 1), size=n, p=odd_dist_prob)
-            return sample
+def roll(d, split=None, r=[.5, .5], weight_left=.5, n=1):
+    weight_right = 1. - weight_left
+    if split is None:
+        split = d/2
+    split = int(split)
+    r_left = r[0]
+    r_right = r[1]
+    if r_right == 1.:
+        p_right = [1./(d-split) for _ in range(d-split)]
+    elif 0 < r_right < 1:
+        p_right = [(r_right ** i) * ((1.-r_right) / (1-r_right**(d-split))) for i in range(d-split)]
+    if r_left == 1.:
+        p_left = [1./split for _ in range(split)]
+    elif 0 < r_left < 1:
+        p_left = [(r_left**i) * ((1.-r_left) / (1-r_left ** split)) for i in range(split-1, -1, -1)]
+    p_total = np.concatenate((weight_left*np.array(p_left), weight_right*np.array(p_right)))
+    print(p_total)
+    sample = np.random.choice([i for i in range(1, d+1)], size=n, p=p_total)
+    return sample
 
 
 if __name__ == "__main__":
-    n = 21
-    p = 7
-    r0 = 0
+    d_ = 20
+    power = 7
+    r_ = [.85, .75]
+    split_ = 14
+    weight = .65
 
-    one_sample = roll(1, n, 10**p, r=r0)
-    plt.hist(one_sample, density=False, bins = np.arange(1, n+2) - 0.5, label=f'1d{n}, r={r0}', rwidth=0.8)
-    plt.xticks(np.arange(1, n+1))
+    one_sample = roll(d_, split=split_, r=r_, weight_left=weight, n=10**power)
+    counts, bins = np.histogram(one_sample, bins=np.arange(1, d_+2) - 0.5,)
+    plt.hist(bins[:-1], bins, weights=counts/10**power, density=False,
+             label=f'1d{d_}, r={r_}, split={split_}, weight_left={weight}', rwidth=0.8)
+    plt.xticks(np.arange(1, d_+1))
+    plt.ylabel('Relative Frequency')
     print(one_sample[0:20])
-    print('Max', np.max(one_sample))
-    print('Min', np.min(one_sample))
     print('Avg', np.average(one_sample))
+    print('Median', np.median(one_sample))
     plt.legend()
     plt.show()
+
