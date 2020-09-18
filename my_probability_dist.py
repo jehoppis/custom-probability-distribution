@@ -11,11 +11,11 @@ def roll(d, split=None, r=[.5, .5], weight_left=.5, n=1):
     r_right = r[1]
     if r_right == 1.:
         p_right = [1./(d-split) for _ in range(d-split)]
-    elif 0 < r_right < 1:
+    elif r_right < 1:
         p_right = [(r_right ** i) * ((1.-r_right) / (1-r_right**(d-split))) for i in range(d-split)]
     if r_left == 1.:
         p_left = [1./split for _ in range(split)]
-    elif 0 < r_left < 1:
+    elif r_left < 1:
         p_left = [(r_left**i) * ((1.-r_left) / (1-r_left ** split)) for i in range(split-1, -1, -1)]
     p_total = np.concatenate((weight_left*np.array(p_left), weight_right*np.array(p_right)))
     print(p_total)
